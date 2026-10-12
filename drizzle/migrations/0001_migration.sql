@@ -1,4 +1,12 @@
 
+-- Create storage buckets if they do not already exist
+insert into storage.buckets (id, name, public)
+values
+  ('product-images', 'product-images', true),
+  ('store-assets', 'store-assets', true),
+  ('payment-proofs', 'payment-proofs', false)
+on conflict (id) do nothing;
+
 -- Product images & store assets: anyone may read (via signed URLs), only admins write
 create policy "catalog images readable" on storage.objects for select to anon, authenticated
   using (bucket_id in ('product-images','store-assets'));

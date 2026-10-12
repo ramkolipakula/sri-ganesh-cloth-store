@@ -16,7 +16,9 @@ export function SiteHeader() {
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
         <Link to="/" className="flex shrink-0 flex-col leading-none">
           <span className="font-display text-lg text-navy sm:text-xl">Sri Ganesh</span>
-          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Cloth Centre</span>
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
+            Cloth Centre
+          </span>
         </Link>
         <form
           className="relative hidden flex-1 sm:block"
@@ -35,19 +37,34 @@ export function SiteHeader() {
           />
         </form>
         <nav className="ml-auto flex items-center gap-1">
-          <Link to="/shop" className="hidden rounded-md px-3 py-2 text-sm font-semibold hover:bg-muted md:block">
+          <Link
+            to="/shop"
+            className="hidden rounded-md px-3 py-2 text-sm font-semibold hover:bg-muted md:block"
+          >
             Shop
           </Link>
           {isAdmin && (
-            <Link to="/admin" className="flex items-center gap-1 rounded-md px-2 py-2 text-sm font-semibold text-primary hover:bg-muted" aria-label="Admin dashboard">
+            <Link
+              to="/admin"
+              className="flex items-center gap-1 rounded-md px-2 py-2 text-sm font-semibold text-primary hover:bg-muted"
+              aria-label="Admin dashboard"
+            >
               <Shield className="size-5" /> <span className="hidden md:inline">Admin</span>
             </Link>
           )}
           {user && <NotificationBell />}
-          <Link to={user ? "/account" : "/auth"} className="rounded-md p-2 hover:bg-muted" aria-label="Account">
+          <Link
+            to={user ? "/account" : "/auth"}
+            className="rounded-md p-2 hover:bg-muted"
+            aria-label="Account"
+          >
             <User className="size-5" />
           </Link>
-          <Link to="/cart" className="relative rounded-md p-2 hover:bg-muted" aria-label={`Cart, ${count} items`}>
+          <Link
+            to="/cart"
+            className="relative rounded-md p-2 hover:bg-muted"
+            aria-label={`Cart, ${count} items`}
+          >
             <ShoppingBag className="size-5" />
             {count > 0 && (
               <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-bold text-primary-foreground">

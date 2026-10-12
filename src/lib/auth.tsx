@@ -39,7 +39,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
-  return <Ctx.Provider value={{ user, session, loading, isAdmin: !!user && isAdmin }}>{children}</Ctx.Provider>;
+  return (
+    <Ctx.Provider value={{ user, session, loading, isAdmin: !!user && isAdmin }}>
+      {children}
+    </Ctx.Provider>
+  );
 }
 
 export const useAuth = () => useContext(Ctx);

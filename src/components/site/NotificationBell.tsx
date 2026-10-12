@@ -29,7 +29,12 @@ export function useNotifications(limit = 30) {
       .channel(`notif-${user.id}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "notifications", filter: `recipient_id=eq.${user.id}` },
+        {
+          event: "*",
+          schema: "public",
+          table: "notifications",
+          filter: `recipient_id=eq.${user.id}`,
+        },
         () => qc.invalidateQueries({ queryKey: ["notifications"] }),
       )
       .subscribe();
@@ -44,7 +49,11 @@ export function NotificationBell() {
   const { data } = useNotifications();
   const unread = data?.filter((n) => !n.is_read).length ?? 0;
   return (
-    <Link to="/notifications" className="relative rounded-md p-2 hover:bg-muted" aria-label={`Notifications, ${unread} unread`}>
+    <Link
+      to="/notifications"
+      className="relative rounded-md p-2 hover:bg-muted"
+      aria-label={`Notifications, ${unread} unread`}
+    >
       <Bell className="size-5" />
       {unread > 0 && (
         <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-gold px-1 text-[11px] font-bold text-navy">

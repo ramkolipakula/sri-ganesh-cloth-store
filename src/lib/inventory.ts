@@ -14,7 +14,9 @@ export function totalStock(p: StockProduct): number {
 }
 
 /** Options shown to customers. Free-size products expose only "Free Size". */
-export function sizeOptions(p: StockProduct): { label: string; stock: number; available: boolean }[] {
+export function sizeOptions(
+  p: StockProduct,
+): { label: string; stock: number; available: boolean }[] {
   if (p.inventory_mode === "free_size") {
     return [{ label: FREE_SIZE, stock: p.free_size_stock, available: p.free_size_stock > 0 }];
   }
@@ -48,7 +50,8 @@ export function validateSizeRows(rows: { size_label: string; stock: number }[]):
     const key = label.toUpperCase();
     if (seen.has(key)) return `Size "${label}" is listed twice`;
     seen.add(key);
-    if (!Number.isInteger(r.stock) || r.stock < 0) return `Stock for ${label} must be a whole number 0 or more`;
+    if (!Number.isInteger(r.stock) || r.stock < 0)
+      return `Stock for ${label} must be a whole number 0 or more`;
   }
   return null;
 }

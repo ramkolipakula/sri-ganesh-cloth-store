@@ -4,20 +4,28 @@ import type { Tables } from "@/integrations/supabase/types";
 
 export type Category = Tables<"categories">;
 export type Settings = Tables<"store_settings">;
-export type ProductSize = Pick<Tables<"product_sizes">, "id" | "size_label" | "stock" | "sort_order">;
+export type ProductSize = Pick<
+  Tables<"product_sizes">,
+  "id" | "size_label" | "stock" | "sort_order"
+>;
 export type Product = Tables<"products"> & {
   category: { name: string; slug: string; is_active?: boolean } | null;
   product_sizes: ProductSize[];
 };
 
-export const PRODUCT_SELECT = "*, category:categories(name,slug,is_active), product_sizes(id,size_label,stock,sort_order)";
+export const PRODUCT_SELECT =
+  "*, category:categories(name,slug,is_active), product_sizes(id,size_label,stock,sort_order)";
 
 export function useSettings() {
   return useQuery({
     queryKey: ["settings"],
     staleTime: 60_000,
     queryFn: async () => {
-      const { data, error } = await supabase.from("store_settings").select("*").eq("id", 1).single();
+      const { data, error } = await supabase
+        .from("store_settings")
+        .select("*")
+        .eq("id", 1)
+        .single();
       if (error) throw error;
       return data;
     },
@@ -39,11 +47,11 @@ export function useCategories(opts: { all?: boolean } = {}) {
 }
 
 export type ProductFilters = {
-  category?: string; // slug
-  q?: string;
-  sort?: "newest" | "price_asc" | "price_desc";
-  featured?: boolean;
-  limit?: number;
+  category?: string | undefined; // slug
+  q?: string | undefined;
+  sort?: ("newest" | "price_asc" | "price_desc") | undefined;
+  featured?: boolean | undefined;
+  limit?: number | undefined;
 };
 
 /** Storefront products — only active, unarchived, in an active category. */
