@@ -651,10 +651,18 @@ function CartPage() {
                 ) : (
                   <div className="rounded-xl border bg-muted/40 p-3 text-[11px] text-muted-foreground">
                     <p className="font-bold text-foreground">Pickup Address:</p>
-                    <p className="mt-0.5">
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                        "Sri Ganesh Cloth Centre, Door No. 199/3, Near Ramalayam Temple, Durga Bazar, Arilova Colony, Visakhapatnam – 530040",
+                      )}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-0.5 block hover:underline text-primary font-medium"
+                      title="Open in Google Maps"
+                    >
                       Door No. 199/3, Near Ramalayam Temple, Durga Bazar, Arilova Colony,
                       Visakhapatnam – 530040
-                    </p>
+                    </a>
                   </div>
                 )}
 

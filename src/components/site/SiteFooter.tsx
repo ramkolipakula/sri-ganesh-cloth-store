@@ -4,6 +4,13 @@ import { useSettings } from "@/lib/queries";
 export function SiteFooter() {
   const { data: s } = useSettings();
   const phone = s?.phone ?? "7981809751";
+  const address =
+    s?.address ||
+    "Door No. 199/3, Near Ramalayam Temple, Durga Bazar, Arilova Colony, Visakhapatnam, Andhra Pradesh – 530040";
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    `Sri Ganesh Cloth Centre, ${address}`,
+  )}`;
+
   return (
     <footer className="mt-16 bg-navy text-navy-foreground">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-3">
@@ -17,10 +24,16 @@ export function SiteFooter() {
           </p>
         </div>
         <div className="space-y-3 text-sm">
-          <p className="flex gap-2">
-            <MapPin className="mt-0.5 size-4 shrink-0" />
-            {s?.address}
-          </p>
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="flex gap-2 hover:underline group items-start"
+            title="Open Sri Ganesh Cloth Centre in Google Maps"
+          >
+            <MapPin className="mt-0.5 size-4 shrink-0 text-gold group-hover:scale-110 transition-transform" />
+            <span>{address}</span>
+          </a>
           <a href={`tel:+91${phone}`} className="flex gap-2 hover:underline">
             <Phone className="size-4" />
             {phone}

@@ -15,7 +15,7 @@ import { useProduct, useSettings } from "@/lib/queries";
 import { useCart } from "@/lib/cart";
 import { inr } from "@/lib/format";
 import { FREE_SIZE, sizeOptions, stockForSize, totalStock, stockLevel } from "@/lib/inventory";
-import { useImageUrls } from "@/lib/storage";
+import { useImageUrls, getProductImageUrl } from "@/lib/storage";
 import { ProductImg, StockBadge } from "@/components/site/ProductCard";
 import { Button } from "@/components/ui/button";
 
@@ -153,7 +153,11 @@ function ProductDetailPage() {
         <div className="overflow-hidden rounded-2xl border bg-card shadow-sm">
           <div className="relative aspect-[3/4] w-full">
             <ProductImg
-              url={product.image_path ? imageUrls?.[product.image_path] : undefined}
+              url={
+                product.image_path
+                  ? (imageUrls?.[product.image_path] ?? getProductImageUrl(product.image_path))
+                  : undefined
+              }
               alt={product.name}
               className={isOverallOutOfStock ? "opacity-60" : ""}
             />

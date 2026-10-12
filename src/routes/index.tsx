@@ -271,13 +271,24 @@ function Index() {
             </p>
 
             <div className="mt-6 space-y-3 text-sm">
-              <p className="flex items-start gap-2.5">
-                <MapPin className="mt-0.5 size-4.5 shrink-0 text-primary" />
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                  `Sri Ganesh Cloth Centre, ${
+                    settings?.address ||
+                    "Door No. 199/3, Near Ramalayam Temple, Durga Bazar, Arilova Colony, Visakhapatnam, Andhra Pradesh – 530040"
+                  }`,
+                )}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-start gap-2.5 hover:underline group"
+                title="Open Sri Ganesh Cloth Centre in Google Maps"
+              >
+                <MapPin className="mt-0.5 size-4.5 shrink-0 text-primary group-hover:scale-110 transition-transform" />
                 <span>
                   {settings?.address ||
                     "Door No. 199/3, Near Ramalayam Temple, Durga Bazar, Arilova Colony, Visakhapatnam, Andhra Pradesh – 530040"}
                 </span>
-              </p>
+              </a>
               <p className="flex items-center gap-2.5">
                 <Phone className="size-4.5 shrink-0 text-primary" />
                 <a href={`tel:+91${storePhone}`} className="font-semibold hover:underline">

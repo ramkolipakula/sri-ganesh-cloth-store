@@ -33,7 +33,7 @@ import { useSettings, useCategories, PRODUCT_SELECT, type Product } from "@/lib/
 import { StatusPill } from "@/components/site/OrderBits";
 import { totalStock, validateSizeRows, FREE_SIZE } from "@/lib/inventory";
 import { ImagePicker } from "@/components/site/ImagePicker";
-import { uploadWithProgress, extFor, useImageUrls } from "@/lib/storage";
+import { uploadWithProgress, extFor, useImageUrls, getProductImageUrl } from "@/lib/storage";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/admin")({
@@ -761,7 +761,7 @@ function AdminPage() {
                           <div className="size-10 shrink-0 rounded-lg border bg-muted overflow-hidden">
                             {p.image_path ? (
                               <img
-                                src={`https://jfdltecrsdblwsmmcvzr.supabase.co/storage/v1/object/public/product-images/${p.image_path}`}
+                                src={getProductImageUrl(p.image_path)}
                                 alt={p.name}
                                 className="h-full w-full object-cover"
                               />
@@ -1488,11 +1488,7 @@ function AdminPage() {
               <div>
                 <ImagePicker
                   label="Product Photo"
-                  currentUrl={
-                    editingProduct?.image_path
-                      ? `https://jfdltecrsdblwsmmcvzr.supabase.co/storage/v1/object/public/product-images/${editingProduct.image_path}`
-                      : undefined
-                  }
+                  currentUrl={getProductImageUrl(editingProduct?.image_path)}
                   onChange={(f) => setProdImageFile(f)}
                   camera={true}
                 />

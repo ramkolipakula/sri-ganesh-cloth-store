@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Camera, ImagePlus, RotateCcw, X, Check } from "lucide-react";
+import { Camera, ImagePlus, X, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { compressImage, validateImage } from "@/lib/storage";
 
 /**
  * Two explicit inputs: camera (capture="environment", rear camera) and gallery/file picker (no capture).
- * Shows a preview with Retake / Cancel / Use Photo before handing the file to the parent.
+ * Immediately passes chosen and compressed image to parent onChange, with option to change or remove.
  */
 export function ImagePicker({
   currentUrl,
@@ -20,31 +20,48 @@ export function ImagePicker({
 }) {
   const camRef = useRef<HTMLInputElement>(null);
   const galRef = useRef<HTMLInputElement>(null);
-  const [pending, setPending] = useState<{
-    file: File;
-    url: string;
-    source: "camera" | "gallery";
-  } | null>(null);
-  const [chosen, setChosen] = useState<string | null>(null);
+  const [chosenUrl, setChosenUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [processing, setProcessing] = useState(false);
 
-  useEffect(
-    () => () => {
-      if (pending) URL.revokeObjectURL(pending.url);
-    },
-    [pending],
-  );
+  useEffect(() => {
+    return () => {
+      if (chosenUrl && chosenUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(chosenUrl);
+      }
+    };
+  }, [chosenUrl]);
 
-  async function handle(file: File | undefined, source: "camera" | "gallery") {
+  async function handle(file: File | undefined) {
     setError(null);
     if (!file) return;
+
     const err = validateImage(file);
-    if (err) return setError(err);
-    const small = await compressImage(file);
-    setPending({ file: small, url: URL.createObjectURL(small), source });
+    if (err) {
+      setError(err);
+      return;
+    }
+
+    setProcessing(true);
+    try {
+      const small = await compressImage(file);
+      const previewUrl = URL.createObjectURL(small);
+      setChosenUrl(previewUrl);
+      onChange(small);
+    } catch {
+      setError("Failed to process image. Please try a different photo.");
+    } finally {
+      setProcessing(false);
+    }
   }
 
-  const shown = pending?.url ?? chosen ?? currentUrl;
+  function handleRemove() {
+    setChosenUrl(null);
+    setError(null);
+    onChange(null);
+  }
+
+  const shown = chosenUrl ?? currentUrl;
 
   return (
     <div className="space-y-3">
@@ -57,62 +74,49 @@ export function ImagePicker({
             No photo selected
           </div>
         )}
-        {pending && (
-          <span className="absolute left-2 top-2 rounded bg-navy px-2 py-0.5 text-xs text-navy-foreground">
-            Preview
-          </span>
+        {processing && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/70 text-xs font-semibold">
+            <RefreshCw className="mr-1.5 size-4 animate-spin" /> Processing image…
+          </div>
         )}
       </div>
 
-      {pending ? (
-        <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2">
+        {camera && (
           <Button
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => (pending.source === "camera" ? camRef : galRef).current?.click()}
+            onClick={() => camRef.current?.click()}
+            disabled={processing}
           >
-            <RotateCcw /> {pending.source === "camera" ? "Retake" : "Choose another"}
+            <Camera className="size-4 mr-1.5" /> Take photo
           </Button>
-          <Button type="button" variant="ghost" size="sm" onClick={() => setPending(null)}>
-            <X /> Cancel
-          </Button>
+        )}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => galRef.current?.click()}
+          disabled={processing}
+        >
+          <ImagePlus className="size-4 mr-1.5" />
+          {shown ? "Change photo" : "Choose from gallery"}
+        </Button>
+        {chosenUrl && (
           <Button
             type="button"
+            variant="ghost"
             size="sm"
-            onClick={() => {
-              setChosen(pending.url);
-              onChange(pending.file);
-              setPending(null);
-            }}
+            onClick={handleRemove}
+            disabled={processing}
           >
-            <Check /> Use photo
+            <X className="size-4 mr-1" /> Remove
           </Button>
-        </div>
-      ) : (
-        <div className="flex flex-wrap gap-2">
-          {camera && (
-            <Button type="button" variant="outline" onClick={() => camRef.current?.click()}>
-              <Camera /> Take photo
-            </Button>
-          )}
-          <Button type="button" variant="outline" onClick={() => galRef.current?.click()}>
-            <ImagePlus /> Choose from gallery
-          </Button>
-          {chosen && (
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => {
-                setChosen(null);
-                onChange(null);
-              }}
-            >
-              <X /> Remove new photo
-            </Button>
-          )}
-        </div>
-      )}
+        )}
+      </div>
+
+      {/* Hidden file inputs supporting all image types across mobile & desktop */}
       <input
         ref={camRef}
         type="file"
@@ -120,25 +124,27 @@ export function ImagePicker({
         capture="environment"
         className="hidden"
         onChange={(e) => {
-          handle(e.target.files?.[0], "camera");
+          handle(e.target.files?.[0]);
           e.target.value = "";
         }}
       />
       <input
         ref={galRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp"
+        accept="image/*,image/jpeg,image/jpg,image/png,image/webp,image/avif,.jpg,.jpeg,.png,.webp"
         className="hidden"
         onChange={(e) => {
-          handle(e.target.files?.[0], "gallery");
+          handle(e.target.files?.[0]);
           e.target.value = "";
         }}
       />
+
       <p className="text-xs text-muted-foreground">
-        JPG, PNG or WebP. Large photos are resized automatically.
+        Supports JPG, JPEG, PNG, WebP, etc. Automatically optimized for fast mobile loading.
       </p>
+
       {error && (
-        <p role="alert" className="text-sm text-destructive">
+        <p role="alert" className="text-sm text-destructive font-medium">
           {error}
         </p>
       )}

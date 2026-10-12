@@ -8,25 +8,37 @@ import { useAuth } from "@/lib/auth";
 export function useNotifications(limit = 30) {
   const { user } = useAuth();
   const qc = useQueryClient();
+
   const q = useQuery({
     queryKey: ["notifications", user?.id, limit],
     enabled: !!user,
-    refetchInterval: 60_000, // fallback if realtime disconnects
+    refetchInterval: 60_000, // fallback polling
     refetchOnWindowFocus: true,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("notifications")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(limit);
-      if (error) throw error;
-      return data;
+      try {
+        const { data, error } = await supabase
+          .from("notifications")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(limit);
+        if (error) {
+          console.warn("[Notifications] fetch error:", error);
+          return [];
+        }
+        return data ?? [];
+      } catch (err) {
+        console.warn("[Notifications] catch error:", err);
+        return [];
+      }
     },
   });
+
   useEffect(() => {
     if (!user) return;
+    // Unique channel topic preventing duplicate channel exceptions when NotificationBell and NotificationsPage coexist
+    const chName = `notif-${user.id}-${Math.random().toString(36).slice(2, 7)}`;
     const ch = supabase
-      .channel(`notif-${user.id}`)
+      .channel(chName)
       .on(
         "postgres_changes",
         {
@@ -38,16 +50,19 @@ export function useNotifications(limit = 30) {
         () => qc.invalidateQueries({ queryKey: ["notifications"] }),
       )
       .subscribe();
+
     return () => {
       supabase.removeChannel(ch);
     };
   }, [user, qc]);
+
   return q;
 }
 
 export function NotificationBell() {
-  const { data } = useNotifications();
+  const { data } = useNotifications(15);
   const unread = data?.filter((n) => !n.is_read).length ?? 0;
+
   return (
     <Link
       to="/notifications"

@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Bell, CheckCheck, Clock, ShoppingBag, ArrowLeft, Shield } from "lucide-react";
+import { Bell, CheckCheck, Clock, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,12 +19,32 @@ export const Route = createFileRoute("/notifications")({
     ],
   }),
   component: NotificationsPage,
+  errorComponent: ({ error, reset }) => (
+    <div className="mx-auto max-w-md px-4 py-20 text-center">
+      <Bell className="mx-auto size-12 text-destructive" />
+      <h1 className="mt-4 font-display text-2xl font-bold">Failed to load notifications</h1>
+      <p className="mt-2 text-sm text-muted-foreground">
+        {error instanceof Error ? error.message : "Something went wrong while loading notifications."}
+      </p>
+      <div className="mt-6 flex justify-center gap-3">
+        <Button onClick={() => reset()} className="rounded-full">
+          Try again
+        </Button>
+        <Link
+          to="/"
+          className="inline-flex items-center rounded-full border px-5 py-2 text-sm font-semibold hover:bg-muted"
+        >
+          Go home
+        </Link>
+      </div>
+    </div>
+  ),
 });
 
 function NotificationsPage() {
   const qc = useQueryClient();
   const { user, isAdmin, loading } = useAuth();
-  const { data: notifications, isLoading } = useNotifications(50);
+  const { data: notifications = [], isLoading, isError, refetch } = useNotifications(50);
 
   const markAsRead = async (id: string) => {
     try {
@@ -56,6 +76,7 @@ function NotificationsPage() {
   if (loading) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 text-center text-muted-foreground">
+        <RefreshCw className="mx-auto size-6 animate-spin text-muted-foreground mb-2" />
         Loading notifications…
       </div>
     );
@@ -72,7 +93,7 @@ function NotificationsPage() {
         <Link
           to="/auth"
           search={{ redirect: "/notifications" }}
-          className="mt-6 inline-flex rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-xs"
+          className="mt-6 inline-flex rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-xs hover:bg-primary/90"
         >
           Sign In
         </Link>
@@ -80,7 +101,7 @@ function NotificationsPage() {
     );
   }
 
-  const unreadCount = notifications?.filter((n) => !n.is_read).length ?? 0;
+  const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
@@ -115,7 +136,22 @@ function NotificationsPage() {
               <div key={i} className="h-20 animate-pulse rounded-2xl border bg-muted/40" />
             ))}
           </div>
-        ) : !notifications || notifications.length === 0 ? (
+        ) : isError ? (
+          <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-8 text-center">
+            <p className="text-sm font-semibold text-destructive">Could not load notifications</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Please check your connection and try again.
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetch()}
+              className="mt-4 rounded-full text-xs font-semibold"
+            >
+              Retry
+            </Button>
+          </div>
+        ) : notifications.length === 0 ? (
           <div className="rounded-2xl border border-dashed p-12 text-center">
             <Bell className="mx-auto size-10 text-muted-foreground/60" />
             <h2 className="mt-3 font-display text-lg font-bold">No notifications yet</h2>
@@ -125,7 +161,7 @@ function NotificationsPage() {
             <Link
               to="/shop"
               search={{}}
-              className="mt-5 inline-flex rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground"
+              className="mt-5 inline-flex rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
             >
               Browse Shop
             </Link>
@@ -133,7 +169,6 @@ function NotificationsPage() {
         ) : (
           notifications.map((notif) => {
             const isRead = notif.is_read;
-            const targetUrl = isAdmin ? "/admin" : notif.order_id ? "/account" : "/shop";
 
             return (
               <div
@@ -171,7 +206,10 @@ function NotificationsPage() {
                         <Clock className="size-3" /> {fmtDate(notif.created_at)}
                       </span>
                       {notif.order_id && (
-                        <Link to={targetUrl} className="font-semibold text-primary hover:underline">
+                        <Link
+                          to={isAdmin ? "/admin" : "/account"}
+                          className="font-semibold text-primary hover:underline"
+                        >
                           View Order →
                         </Link>
                       )}

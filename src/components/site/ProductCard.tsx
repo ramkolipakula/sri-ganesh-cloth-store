@@ -1,9 +1,10 @@
 import { Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { ImageOff } from "lucide-react";
 import type { Product } from "@/lib/queries";
 import { inr } from "@/lib/format";
 import { stockLevel, totalStock } from "@/lib/inventory";
-import { useImageUrls } from "@/lib/storage";
+import { useImageUrls, getProductImageUrl } from "@/lib/storage";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function StockBadge({ stock, threshold }: { stock: number; threshold: number }) {
@@ -36,8 +37,16 @@ export function ProductImg({
   alt: string;
   className?: string;
 }) {
-  return url ? (
-    <img src={url} alt={alt} loading="lazy" className={`h-full w-full object-cover ${className}`} />
+  const [loadError, setLoadError] = useState(false);
+
+  return url && !loadError ? (
+    <img
+      src={url}
+      alt={alt}
+      loading="lazy"
+      onError={() => setLoadError(true)}
+      className={`h-full w-full object-cover ${className}`}
+    />
   ) : (
     <div className="flex h-full w-full items-center justify-center bg-muted text-muted-foreground">
       <ImageOff className="size-8" />
@@ -77,6 +86,9 @@ export function ProductGrid({
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
       {products.map((p) => {
         const stock = totalStock(p);
+        const imgUrl = p.image_path
+          ? (urls?.[p.image_path] ?? getProductImageUrl(p.image_path))
+          : undefined;
         return (
           <Link
             key={p.id}
@@ -86,7 +98,7 @@ export function ProductGrid({
           >
             <div className="relative aspect-[3/4] overflow-hidden">
               <ProductImg
-                url={p.image_path ? urls?.[p.image_path] : undefined}
+                url={imgUrl}
                 alt={p.name}
                 className={stock <= 0 ? "opacity-60" : ""}
               />
